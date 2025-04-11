@@ -3,15 +3,17 @@ const db = require("./db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const authRoutes = require("./authRoutes");
+const expenseRoutes = require('./expenseRoutes');
 
 const app = express();
 const PORT = 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static("public")); // Serve HTML, CSS, JS from "public" folder
 app.use("/api", authRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 // MySQL Connection
 // const db = mysql.createConnection({

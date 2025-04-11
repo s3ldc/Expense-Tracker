@@ -1,56 +1,59 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('./db');
+const db = require("./db");
 
-// Add an expense
-router.post('/add', (req, res) => {
+// Add a new expense
+router.post("/add", async (req, res) => {
   const { userEmail, name, amount, category } = req.body;
 
   if (!userEmail || !name || !amount || !category) {
-    return res.status(400).json({ message: 'Missing fields' });
+    return res.status(400).json({ error: "All fields are required" });
   }
 
-  const date = new Date().toLocaleDateString('en-IN', {
-    month: 'short',
-    day: 'numeric',
+  const date = new Date().toLocaleDateString("en-IN", {
+    month: "short",
+    day: "numeric",
   });
 
-  const sql = 'INSERT INTO expenses (userEmail, name, amount, category, date) VALUES (?, ?, ?, ?, ?)';
-  db.query(sql, [userEmail, name, amount, category, date], (err, result) => {
-    if (err) {
-      console.error('Error adding expense:', err);
-      return res.status(500).json({ message: 'Failed to add expense' });
-    }
-    res.status(200).json({ message: 'Expense added successfully' });
-  });
+  try {
+    const [result] = await db.execute(
+      "INSERT INTO expenses (userEmail, name, amount, category, date) VALUES (?, ?, ?, ?, ?)",
+      [userEmail, name, amount, category, date]
+    );
+    res.json({ success: true, id: result.insertId });
+  } catch (err) {
+    console.error("Error inserting expense:", err);
+    res.status(500).json({ error: "Failed to add expense" });
+  }
 });
 
 // Get all expenses for a user
-router.get('/:userEmail', (req, res) => {
-  const userEmail = req.params.userEmail;
+router.get("/:email", async (req, res) => {
+  const email = req.params.email;
 
-  const sql = 'SELECT * FROM expenses WHERE userEmail = ? ORDER BY id DESC';
-  db.query(sql, [userEmail], (err, results) => {
-    if (err) {
-      console.error('Error fetching expenses:', err);
-      return res.status(500).json({ message: 'Failed to fetch expenses' });
-    }
-    res.status(200).json(results);
-  });
+  try {
+    const [rows] = await db.execute(
+      "SELECT * FROM expenses WHERE userEmail = ? ORDER BY id DESC",
+      [email]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching expenses:", err);
+    res.status(500).json({ error: "Failed to fetch expenses" });
+  }
 });
 
-// Delete an expense
-router.delete('/:id', (req, res) => {
-  const expenseId = req.params.id;
+// Delete expense by ID
+router.delete("/:id", async (req, res) => {
+  const id = req.params.id;
 
-  const sql = 'DELETE FROM expenses WHERE id = ?';
-  db.query(sql, [expenseId], (err, result) => {
-    if (err) {
-      console.error('Error deleting expense:', err);
-      return res.status(500).json({ message: 'Failed to delete expense' });
-    }
-    res.status(200).json({ message: 'Expense deleted successfully' });
-  });
+  try {
+    const [result] = await db.execute("DELETE FROM expenses WHERE id = ?", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting expense:", err);
+    res.status(500).json({ error: "Failed to delete expense" });
+  }
 });
 
 module.exports = router;

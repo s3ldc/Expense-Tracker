@@ -23,6 +23,25 @@ if (!loggedInUser) {
   window.location.href = "auth.html";
 }
 
+const user = JSON.parse(loggedInUser);
+
+// Fetch expenses from the backend
+function loadExpenses() {
+  fetch(`/api/expenses/${encodeURIComponent(user.email)}`)
+    .then((res) => res.json())
+    .then((data) => {
+      expenses = data;
+      renderExpenses();
+    })
+    .catch((err) => {
+      console.error("Failed to load expenses:", err);
+    });
+}
+
+// Initial load
+loadExpenses();
+
+// Handle form submission
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -33,30 +52,59 @@ form.addEventListener("submit", function (e) {
   if (!name || !amount || !category) return;
 
   const expense = {
-    id: Date.now().toString(),
+    userEmail: user.email,
     name,
     amount,
     category,
-    date: new Date().toLocaleDateString("en-IN", {
-      month: "short",
-      day: "numeric"
-    })
   };
 
-  expenses.push(expense);
-  renderExpenses();
+  // Send to server
+  fetch("/api/expenses/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(expense),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Expense added:", data);
+      loadExpenses(); // This will fetch and re-render
 
-  nameInput.value = "";
-  amountInput.value = "";
-  categoryInput.value = "";
+      // Clear input fields
+      nameInput.value = "";
+      amountInput.value = "";
+      categoryInput.value = "";
+    })
+    .catch((err) => {
+      console.error("Failed to add expense:", err);
+    });
 });
+
 
 function renderExpenses() {
   expenseList.innerHTML = "";
   let total = 0;
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  let monthlyTransactionCount = 0;
 
   expenses.forEach((exp) => {
-    total += exp.amount;
+    const expDateParts = exp.date.split(" "); // e.g., ["11", "Apr"]
+    const expDate = new Date(`${expDateParts[1]} ${expDateParts[0]}, ${new Date().getFullYear()}`);    
+    const isThisMonth =
+      expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear;
+
+    if (isThisMonth) {
+      monthlyTransactionCount++;
+    }
+
+    total += parseFloat(exp.amount);
+
+    // Fallback for missing or invalid date
+    const formattedDate = !exp.date || isNaN(expDate)
+      ? new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric" })
+      : expDate.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
 
     const item = document.createElement("div");
     item.className = "list-group-item list-group-item-action d-flex justify-content-between align-items-center";
@@ -68,7 +116,7 @@ function renderExpenses() {
 
     const sub = document.createElement("small");
     sub.className = "text-muted";
-    sub.textContent = `${exp.date} • ${exp.category}`;
+    sub.textContent = `${formattedDate} • ${exp.category}`;
 
     left.appendChild(title);
     left.appendChild(sub);
@@ -78,7 +126,7 @@ function renderExpenses() {
 
     const amt = document.createElement("div");
     amt.className = "fw-bold text-dark";
-    amt.textContent = `₹${exp.amount.toFixed(2)}`;
+    amt.textContent = `₹${parseFloat(exp.amount).toFixed(2)}`;
 
     const badge = document.createElement("span");
     badge.className = `badge badge-category rounded-pill ${categoryColors[exp.category] || "bg-light"}`;
@@ -88,8 +136,18 @@ function renderExpenses() {
     delBtn.className = "btn btn-sm btn-outline-danger";
     delBtn.innerHTML = "🗑️";
     delBtn.onclick = () => {
-      expenses = expenses.filter((e) => e.id !== exp.id);
-      renderExpenses();
+      fetch(`/api/expenses/${exp.id}`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Deleted from DB:", data);
+          expenses = expenses.filter((e) => e.id !== exp.id);
+          renderExpenses();
+        })
+        .catch((err) => {
+          console.error("Failed to delete:", err);
+        });
     };
 
     right.appendChild(badge);
@@ -102,9 +160,12 @@ function renderExpenses() {
     expenseList.appendChild(item);
   });
 
-  totalAmount.textContent = `₹${total.toFixed(2)}`;
-  transactionCount.textContent = `${expenses.length} transaction${expenses.length !== 1 ? "s" : ""} this month`;
+  totalAmount.textContent = `₹${parseFloat(total || 0).toFixed(2)}`;
+  transactionCount.textContent = `${monthlyTransactionCount} transaction${monthlyTransactionCount !== 1 ? "s" : ""} this month`;
 }
+
+
+
 
 function logout() {
   localStorage.removeItem("loggedInUser");
