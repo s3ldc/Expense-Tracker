@@ -1,50 +1,48 @@
 # Expense Tracker
 
-A simple and intuitive expense tracking application built to help users record, categorize and review their spending patterns easily.
-
----
-
-## Table of Contents
-
-- [Project Overview](#project-overview)  
-- [Features](#features)  
-- [Tech Stack](#tech-stack)  
-- [Project Structure](#project-structure)  
-- [Installation / Quick Start](#installation--quick-start)  
-- [Usage](#usage)  
-- [Future Improvements](#future-improvements)  
-- [Contributing](#contributing)  
-- [License](#license)  
-- [Contact](#contact)
+A simple and lightweight full-stack Expense Tracking application built using **Node.js**, **Express**, and a **static frontend** served from the `public/` directory.  
+It allows users to add, view, update, and manage daily expenses with a clean backend structure and modular routing.
 
 ---
 
 ## Project Overview
 
-This application allows users to track their expenses by entering expense details (amount, category, date, description), view summaries over time, and obtain insights into their spending habits. It aims to simplify personal finance management by providing an easy-to-use interface for everyday use.
+The Expense Tracker enables users to record spending details such as amount, category, date, and description.  
+The backend is built with Node.js + Express and exposes REST-style endpoints through route modules.  
+The frontend UI (HTML/CSS/JS) is served from the `public/` folder for easy deployment and local use.
 
 ---
 
 ## Features
 
-- Add new expenses with amount, category, date and description  
-- Categorise expenses to view spending by category  
-- View total spending over a user-defined period  
-- Edit or delete expense entries  
-- Visual summaries (charts / tables) of spending by category or date (if applicable)  
-- Search or filter expenses by date or category (if implemented)
+- Add new expenses (amount, date, category, description)
+- View a list of all expenses
+- Edit or delete existing expenses (depending on UI integration)
+- API routes separated into:
+  - `authRoutes.js` – Authentication endpoints (if needed)
+  - `expenseRoutes.js` – Expense CRUD operations
+- Centralized database configuration in `db.js`
+- Static frontend served automatically by Express
 
 ---
 
 ## Tech Stack
 
-- Programming language: `<insert language e.g., C#, JavaScript, Python…>`  
-- Framework / UI: `<insert e.g., WinForms, ASP.NET MVC, React, Flask…>`  
-- Data persistence: `<insert e.g., SQLite, SQL Server, LocalStorage…>`  
-- Charting / Visualization: `<insert library if used>`  
-- Build tools / dependencies: `<insert details>`  
+**Backend**
+- Node.js  
+- Express.js  
+- Custom routes (`authRoutes.js`, `expenseRoutes.js`)  
+- Database config in `db.js` (modify to use MongoDB, SQL, or file-based storage)
 
-*Note: Please adjust this section to reflect the exact stack used in this repository.*
+**Frontend**
+- HTML  
+- CSS  
+- JavaScript  
+- Served from `public/`
+
+**Package Management**
+- npm  
+- `package.json` & `package-lock.json`
 
 ---
 
@@ -52,85 +50,153 @@ This application allows users to track their expenses by entering expense detail
 
 ```
 Expense-Tracker/
-├── <folder-or-file names>  
-├── src/  
-│   ├── <modules/files>  
-│   └── …  
-├── assets/ (optional)  
-│   └── images/ (screenshots)  
-├── README.md  
-└── …  
+├── public/                # Frontend UI (HTML, CSS, JS)
+├── authRoutes.js          # Authentication routes
+├── expenseRoutes.js       # Expense CRUD routes
+├── db.js                  # Database configuration
+├── server.js              # Main server file
+├── package.json
+├── package-lock.json
+└── README.md
 ```
-
-Replace the placeholders above with actual folder and file names from the repository for clarity.
 
 ---
 
 ## Installation / Quick Start
 
-1. Clone the repository  
-   ```bash
-   git clone https://github.com/s3ldc/Expense-Tracker.git
-   cd Expense-Tracker
-   ```  
-2. Install required dependencies  
-   ```bash
-   <insert install command e.g., npm install, pip install -r requirements.txt, restore NuGet packages>  
-   ```  
-3. Configure any required settings (database connection, environment variables) if needed  
-4. Run the application  
-   ```bash
-   <insert run command e.g., npm start, dotnet run, python main.py>  
-   ```  
-5. Open the application UI (if applicable) in your browser or desktop window  
+### 1. Clone the repository
+```bash
+git clone https://github.com/s3ldc/Expense-Tracker.git
+cd Expense-Tracker
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+---
+
+## Configuration
+
+The database and persistence settings are defined inside:
+
+```
+db.js
+```
+
+Depending on your preferred database:
+
+- Update connection strings (MongoDB, SQL, LocalDB, SQLite, or file-based JSON)
+- Add environment variables if needed (`.env`)
+
+If using environment variables, create a `.env` file in the root directory.
+
+---
+
+## Running the App
+
+Start the server:
+
+```bash
+npm start
+```
+
+Or:
+
+```bash
+node server.js
+```
+
+The server will start on the port defined in `server.js` (often `http://localhost:3000`).
+
+Open the browser:
+
+```
+http://localhost:3000
+```
+
+The frontend UI will load from the `public/` folder automatically.
 
 ---
 
 ## Usage
 
-- Use the Add Expense interface to record a new expense.  
-- Use filter/search controls to locate past entries.  
-- View charts or summaries (if available) to analyse spending by category or date.  
-- Edit or delete an expense entry as needed.  
+1. Open the application in your browser.  
+2. Use the form to add new expenses:
+   - Amount  
+   - Category  
+   - Date  
+   - Description  
+3. View the list of saved expenses.  
+4. Edit or delete expenses (depending on route integration and UI additions).  
+5. Extend or customize the app by modifying `expenseRoutes.js` or the UI under `public/`.
 
-*(Include screenshots here if you have them, e.g.:)*  
-```markdown
-![Screenshot of Add Expense](assets/images/add-expense.png)  
-![Screenshot of Dashboard](assets/images/dashboard.png)  
+---
+
+## API Overview
+
+### Expense Routes (from `expenseRoutes.js`)
+Typical REST pattern:
+
 ```
+GET    /api/expenses          # Fetch all expenses
+POST   /api/expenses          # Create a new expense
+PUT    /api/expenses/:id      # Update an expense
+DELETE /api/expenses/:id      # Delete an expense
+```
+
+### Authentication Routes (from `authRoutes.js`)
+If auth is implemented:
+
+```
+POST /api/auth/register
+POST /api/auth/login
+```
+
+Check the route files for exact implementations.
 
 ---
 
 ## Future Improvements
 
-- Add user authentication and personalised expense tracking  
-- Add recurring expense support  
-- Add export (CSV/Excel) and report generation  
-- Add mobile or responsive web UI  
-- Add budgeting features and alerts  
-- Improve visual analytics and category drill-down  
+- Add JWT or session-based authentication
+- Add categories management (custom categories)
+- Add filtering by date, amount, or category
+- Add search functionality
+- Add charts for visual spending analytics
+- Add CSV/Excel export functionality
+- Add responsive and modern UI styling
+- Convert frontend to React/Vue/Angular for better UX
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:  
-1. Fork the repository.  
-2. Create a new branch (`feature/YourFeatureName`).  
-3. Make your changes and add tests as needed.  
-4. Submit a pull request describing your changes.
+1. Fork the repository  
+2. Create a new branch  
+   ```bash
+   git checkout -b feature/your-feature
+   ```  
+3. Make your changes  
+4. Commit & push  
+   ```bash
+   git commit -m "Add feature description"
+   git push origin feature/your-feature
+   ```  
+5. Open a Pull Request
 
 ---
 
 ## License
 
-This project is provided under the [MIT License](LICENSE) *(or specify other licence if applicable)*.  
-See the `LICENSE` file for full details.
+If you plan to open-source it, add a `LICENSE` file (MIT recommended).  
+Otherwise treat it as a personal/academic project.
 
 ---
 
 ## Contact
 
-Project maintainer: s3ldc — [GitHub Profile](https://github.com/s3ldc)  
-Feel free to open issues for questions, enhancements or bug fixes.
+Maintainer: **Sunil Biriya**  
+GitHub: https://github.com/s3ldc
 
